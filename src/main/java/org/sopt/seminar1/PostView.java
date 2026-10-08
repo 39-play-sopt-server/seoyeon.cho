@@ -1,5 +1,6 @@
 package org.sopt.seminar1;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class PostView {
@@ -17,9 +18,37 @@ public class PostView {
         System.out.println("6. 종료");
     }
 
+    public void printCategory() {
+        System.out.println("\n=== 카테고리 ===");
+        System.out.println("1. NOTICE");
+        System.out.println("2. NORMAL");
+        System.out.println("3. QUESTION");
+        System.out.println("4. REVIEW");
+        System.out.println("5. ETC");
+    }
+
+    public void printPosts(List<Post> posts) {
+        for (Post post : posts) {
+            System.out.println(post.getId() + ": " + post.getTitle());
+        }
+    }
+
     public int readCommand() {
         System.out.print("선택: ");
         return Integer.parseInt(scanner.nextLine());
+    }
+
+    public PostCategory readCategory() {
+        System.out.print("선택: ");
+        int num = Integer.parseInt(scanner.nextLine());
+        return switch (num) {
+            case 1 -> PostCategory.NOTICE;
+            case 2 -> PostCategory.NORMAL;
+            case 3 -> PostCategory.QUESTION;
+            case 4 -> PostCategory.REVIEW;
+            case 5 -> PostCategory.ETC;
+            default -> throw new IllegalArgumentException("잘못된 카테고리 번호입니다.");
+        };
     }
 
     public String readTitle() {
@@ -32,13 +61,14 @@ public class PostView {
         return scanner.nextLine();
     }
 
-    public int readPostNumber(String message) {
+    public long readPostNumber(String message) {
         System.out.print(message);
-        return Integer.parseInt(scanner.nextLine());
+        return Long.parseLong(scanner.nextLine());
     }
 
     public void printPost(Post post) {
         System.out.println("\n=== 게시글 ===");
+        System.out.println("카테고리: " + post.getCategory());
         System.out.println("제목: " + post.getTitle());
         System.out.println("내용: " + post.getContent());
     }

@@ -1,19 +1,24 @@
 package org.sopt;
 
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@RestController
+@RequestMapping(path = "/api/v1/posts")
 public class PostController {
     // Controller: 게시판의 기능 흐름을 제어
     // 사용자의 메뉴 선택에 맞는 기능을 제공하면서 model과 view에 결과를 반영
-    private final PostView view;
+    // private final PostView view;
     private final PostService service;
 
-    public PostController(PostView view, PostService service) {
-        this.view = view;
+    public PostController(PostService service) {
+        // this.view = view;
         this.service = service;
     }
 
+    /*
     public void run() {
         while (true) {
             view.printMenu();
@@ -39,9 +44,10 @@ public class PostController {
         }
     }
 
-    private void createPost() {
-        String title = view.readTitle();
-        String content = view.readContent();
+    @PostMapping
+    private ApiResponse<?> createPost() {
+        //String title = view.readTitle();
+        //String content = view.readContent();
 
         try {
             view.printCategory();
@@ -119,5 +125,11 @@ public class PostController {
         } catch (NoSuchElementException e) {
             view.printMessage(e.getMessage());
         }
+    }*/
+
+    @GetMapping
+    public String readPost() {
+        return service.readPosts();
     }
+
 }

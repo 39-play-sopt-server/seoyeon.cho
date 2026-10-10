@@ -1,4 +1,4 @@
-package org.sopt.seminar1;
+package org.sopt;
 
 import java.util.ArrayList;
 import java.util.List;

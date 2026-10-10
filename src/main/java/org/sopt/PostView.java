@@ -1,4 +1,4 @@
-package org.sopt.seminar1;
+package org.sopt;
 
 import java.util.List;
 import java.util.Scanner;

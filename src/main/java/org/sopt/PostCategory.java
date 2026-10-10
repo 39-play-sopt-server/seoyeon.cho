@@ -1,4 +1,4 @@
-package org.sopt.seminar1;
+package org.sopt;
 
 public enum PostCategory {
     NOTICE,

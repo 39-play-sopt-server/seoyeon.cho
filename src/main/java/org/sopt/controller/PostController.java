@@ -1,9 +1,7 @@
-package org.sopt;
+package org.sopt.controller;
 
+import org.sopt.service.PostService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping(path = "/api/v1/posts")

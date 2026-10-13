@@ -1,5 +1,8 @@
-package org.sopt;
+package org.sopt.service;
 
+import org.sopt.model.Post;
+import org.sopt.model.PostCategory;
+import org.sopt.repository.PostRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

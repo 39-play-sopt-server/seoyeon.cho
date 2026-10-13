@@ -1,5 +1,8 @@
 package org.sopt;
 
+import org.sopt.model.Post;
+import org.sopt.model.PostCategory;
+
 import java.util.List;
 import java.util.Scanner;
 

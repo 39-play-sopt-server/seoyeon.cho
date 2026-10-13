@@ -1,4 +1,4 @@
-package org.sopt;
+package org.sopt.model;
 
 public class Post {
     // Model: 게시판 내용의 데이터(제목, 본문)를 관리, 검증하며 비즈니스 로직에 따라 처리

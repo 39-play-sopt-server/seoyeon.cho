@@ -1,7 +1,10 @@
 package org.sopt;
 
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
+@Service
 public class PostService {
     // 애플리케이션의 비즈니스 로직 수행
     // 비즈니스 규칙, 트랜잭션 경계, 여러 Repository 조합
@@ -16,8 +19,10 @@ public class PostService {
         repository.save(post);
     }
 
-    public List<Post> readPosts() {
-        return repository.findAll();
+    public String readPosts() {
+        List<Post> posts = repository.findAll();
+        String response = "리스트 조회 성공";
+        return response;
     }
 
     public Post readPost(long id) {

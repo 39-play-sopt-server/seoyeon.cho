@@ -7,6 +7,7 @@ public class Post {
     private String content;
     private PostCategory category;
     private final long id;
+    private long viewCount;
 
     public Post(long id, String title, String content, PostCategory category) {
         checkPost(title, content, category);
@@ -34,6 +35,10 @@ public class Post {
         this.content = content;
     }
 
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
     public long getId() {
         return id;
     }
@@ -48,5 +53,9 @@ public class Post {
 
     public PostCategory getCategory() {
         return this.category;
+    }
+
+    public long getViewCount() {
+        return viewCount;
     }
 }

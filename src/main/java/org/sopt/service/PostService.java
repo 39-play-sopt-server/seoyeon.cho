@@ -22,14 +22,14 @@ public class PostService {
         repository.save(post);
     }
 
-    public String readPosts() {
-        List<Post> posts = repository.findAll();
-        String response = "리스트 조회 성공";
-        return response;
+    public List<Post> readPosts() {
+        return repository.findAll();
     }
 
     public Post readPost(long id) {
-        return repository.findById(id);
+        Post post = repository.findById(id);
+        post.increaseViewCount();
+        return post;
     }
 
     public void updatePost(long id, String title, String content) {

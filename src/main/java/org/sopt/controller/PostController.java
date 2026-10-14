@@ -1,7 +1,12 @@
 package org.sopt.controller;
 
+import org.sopt.dto.PostCreateRequest;
+import org.sopt.dto.PostUpdateRequest;
+import org.sopt.model.Post;
 import org.sopt.service.PostService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/v1/posts")
@@ -126,8 +131,28 @@ public class PostController {
     }*/
 
     @GetMapping
-    public String readPost() {
+    public List<Post> readPosts() {
         return service.readPosts();
+    }
+
+    @PostMapping
+    public void createPost(@RequestBody PostCreateRequest request) {
+        service.createPost(request.getTitle(), request.getContent(), request.getCategory());
+    }
+
+    @GetMapping("/{postId}")
+    public Post readPost(@PathVariable("postId") long postId) {
+        return service.readPost(postId);
+    }
+
+    @PutMapping("/{postId}")
+    public void updatePost(@PathVariable("postId") long postId, @RequestBody PostUpdateRequest request) {
+        service.updatePost(postId, request.getTitle(), request.getContent());
+    }
+
+    @DeleteMapping("/{postId}")
+    public void deletePost(@PathVariable("postId") long postId) {
+        service.deletePost(postId);
     }
 
 }

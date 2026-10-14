@@ -1,10 +1,14 @@
 package org.sopt.controller;
 
+import org.sopt.dto.ApiResponse;
 import org.sopt.dto.PostCreateRequest;
 import org.sopt.dto.PostUpdateRequest;
 import org.sopt.model.Post;
 import org.sopt.service.PostService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
 
 import java.util.List;
 
@@ -131,28 +135,33 @@ public class PostController {
     }*/
 
     @GetMapping
-    public List<Post> readPosts() {
-        return service.readPosts();
+    public ApiResponse<List<Post>> readPosts() {
+        List<Post> posts = service.readPosts();
+        return new ApiResponse<>(true, "게시물 목록 조회 성공", posts);
     }
 
     @PostMapping
-    public void createPost(@RequestBody PostCreateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> createPost(@RequestBody PostCreateRequest request) {
         service.createPost(request.getTitle(), request.getContent(), request.getCategory());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "게시글 작성 성공", null));
     }
 
     @GetMapping("/{postId}")
-    public Post readPost(@PathVariable("postId") long postId) {
-        return service.readPost(postId);
+    public ApiResponse<Post> readPost(@PathVariable("postId") long postId) {
+        Post post = service.readPost(postId);
+        return new ApiResponse<>(true, "게시물 조회 성공", post);
     }
 
     @PutMapping("/{postId}")
-    public void updatePost(@PathVariable("postId") long postId, @RequestBody PostUpdateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> updatePost(@PathVariable("postId") long postId, @RequestBody PostUpdateRequest request) {
         service.updatePost(postId, request.getTitle(), request.getContent());
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "게시글 수정 성공", null));
     }
 
     @DeleteMapping("/{postId}")
-    public void deletePost(@PathVariable("postId") long postId) {
+    public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable("postId") long postId) {
         service.deletePost(postId);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "게시글 삭제 성공", null));
     }
 
 }

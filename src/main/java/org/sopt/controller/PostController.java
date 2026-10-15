@@ -17,6 +17,7 @@ import java.util.List;
 public class PostController {
     // Controller: 게시판의 기능 흐름을 제어
     // 사용자의 메뉴 선택에 맞는 기능을 제공하면서 model과 view에 결과를 반영
+    // --> HTTP 요청을 받아 Service를 호출하고 처리 결과를 HTTP 응답으로 반환
     // private final PostView view;
     private final PostService service;
 
@@ -135,9 +136,9 @@ public class PostController {
     }*/
 
     @GetMapping
-    public ApiResponse<List<Post>> readPosts() {
+    public ResponseEntity<ApiResponse<List<Post>>> readPosts() {
         List<Post> posts = service.readPosts();
-        return new ApiResponse<>(true, "게시물 목록 조회 성공", posts);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "게시물 목록 조회 성공", posts));
     }
 
     @PostMapping
@@ -147,9 +148,9 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ApiResponse<Post> readPost(@PathVariable("postId") long postId) {
+    public ResponseEntity<ApiResponse<Post>> readPost(@PathVariable("postId") long postId) {
         Post post = service.readPost(postId);
-        return new ApiResponse<>(true, "게시물 조회 성공", post);
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(true, "게시물 조회 성공", post));
     }
 
     @PutMapping("/{postId}")

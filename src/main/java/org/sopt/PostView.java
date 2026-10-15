@@ -1,4 +1,4 @@
-package org.sopt;
+/*package org.sopt;
 
 import org.sopt.model.Post;
 import org.sopt.model.PostCategory;
@@ -80,3 +80,4 @@ public class PostView {
         System.out.println(message);
     }
 }
+*/

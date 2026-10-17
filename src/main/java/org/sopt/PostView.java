@@ -1,4 +1,7 @@
-package org.sopt;
+/*package org.sopt;
+
+import org.sopt.model.Post;
+import org.sopt.model.PostCategory;
 
 import java.util.List;
 import java.util.Scanner;
@@ -77,3 +80,4 @@ public class PostView {
         System.out.println(message);
     }
 }
+*/

@@ -1,4 +1,4 @@
-package org.sopt;
+package org.sopt.model;
 
 public class Post {
     // Model: 게시판 내용의 데이터(제목, 본문)를 관리, 검증하며 비즈니스 로직에 따라 처리
@@ -7,6 +7,7 @@ public class Post {
     private String content;
     private PostCategory category;
     private final long id;
+    private long viewCount;
 
     public Post(long id, String title, String content, PostCategory category) {
         checkPost(title, content, category);
@@ -34,6 +35,10 @@ public class Post {
         this.content = content;
     }
 
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
     public long getId() {
         return id;
     }
@@ -48,5 +53,9 @@ public class Post {
 
     public PostCategory getCategory() {
         return this.category;
+    }
+
+    public long getViewCount() {
+        return viewCount;
     }
 }

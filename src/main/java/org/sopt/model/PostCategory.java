@@ -1,4 +1,4 @@
-package org.sopt;
+package org.sopt.model;
 
 public enum PostCategory {
     NOTICE,

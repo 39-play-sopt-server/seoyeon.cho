@@ -17,8 +17,8 @@ public class PostService {
     }
 
     public void createPost(String title, String content, PostCategory category) {
-        long id = repository.grantID();
-        Post post = new Post(id, title, content, category);
+        // long id = repository.grantID();
+        Post post = new Post(title, content, category);
         repository.save(post);
     }
 
@@ -27,17 +27,17 @@ public class PostService {
     }
 
     public Post readPost(long id) {
-        Post post = repository.findById(id);
+        Post post = repository.findById(id).orElseThrow();
         post.increaseViewCount();
         return post;
     }
 
     public void updatePost(long id, String title, String content) {
-        Post post = repository.findById(id);
+        Post post = repository.findById(id).orElseThrow();
         post.updatePost(title, content);
     }
 
     public void deletePost(long id) {
-        repository.delete(id);
+        repository.deleteById(id);
     }
 }

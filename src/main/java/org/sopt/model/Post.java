@@ -1,34 +1,44 @@
 package org.sopt.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
-public class Post {
+public class Post extends BaseEntity {
     // Model: 게시판 내용의 데이터(제목, 본문)를 관리, 검증하며 비즈니스 로직에 따라 처리
     // 비즈니스 로직 --> 게시판 데이터의 생성, 조회, 수정, 삭제 정도
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
-    private PostCategory category;
 
     private long viewCount;
 
-    public Post(String title, String content, PostCategory category) {
-        checkPost(title, content, category);
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PostCategory category;
 
-        // this.id = id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    public Post(String title, String content, PostCategory category, Member member) {
+        checkPost(title, content, category);
+        if (member == null) {
+            throw new IllegalArgumentException("작성자는 필수입니다.");
+        }
+
         this.title = title;
         this.content = content;
         this.category = category;
+        this.member = member;
     }
 
-    public Post() {}
+    protected Post() {}
 
     private void checkPost(String title, String content, PostCategory category) {
         if (title == null || title.isBlank() || content == null || content.isBlank()) {
@@ -69,5 +79,9 @@ public class Post {
 
     public long getViewCount() {
         return viewCount;
+    }
+
+    public Member getMember() {
+        return member;
     }
 }

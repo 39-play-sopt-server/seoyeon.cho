@@ -1,43 +1,63 @@
 package org.sopt.service;
 
+import org.sopt.dto.PostResponse;
+import org.sopt.exception.BusinessException;
+import org.sopt.exception.ErrorCode;
+import org.sopt.model.Member;
 import org.sopt.model.Post;
 import org.sopt.model.PostCategory;
+import org.sopt.repository.MemberRepository;
 import org.sopt.repository.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostService {
-    // 애플리케이션의 비즈니스 로직 수행
-    // 비즈니스 규칙, 트랜잭션 경계, 여러 Repository 조합
-    private final PostRepository repository;
-    public PostService(PostRepository repository) {
-        this.repository = repository;
+    private final PostRepository postRepository;
+    private final MemberRepository memberRepository;
+
+    public PostService(PostRepository postRepository, MemberRepository memberRepository) {
+        this.postRepository = postRepository;
+        this.memberRepository = memberRepository;
     }
 
-    public void createPost(String title, String content, PostCategory category) {
-        // long id = repository.grantID();
-        Post post = new Post(title, content, category);
-        repository.save(post);
+    @Transactional
+    public void createPost(String title, String content, PostCategory category, Long memberId) {
+        if (memberId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Post post = new Post(title, content, category, member);
+        postRepository.save(post);
     }
 
-    public List<Post> readPosts() {
-        return repository.findAll();
+    @Transactional(readOnly = true)
+    public Page<PostResponse> readPosts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
+        Page<Post> posts = postRepository.findAll(pageable);
+        return posts.map(PostResponse::new);
     }
 
-    public Post readPost(long id) {
-        Post post = repository.findById(id).orElseThrow();
+    @Transactional
+    public PostResponse readPost(long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         post.increaseViewCount();
-        return post;
+        return new PostResponse(post);
     }
 
+    @Transactional
     public void updatePost(long id, String title, String content) {
-        Post post = repository.findById(id).orElseThrow();
+        Post post = postRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         post.updatePost(title, content);
     }
 
-    public void deletePost(long id) {
-        repository.deleteById(id);
+    @Transactional
+    public void deletePost(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        postRepository.delete(post);
     }
 }

@@ -36,3 +36,55 @@ jobs:
           name: spring-boot-jar
           path: build/libs/assignment-1.0-SNAPSHOT.jar
           if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: spring-boot-jar
+          path: build/libs
+
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_FINGERPRINT }}
+          source: build/libs/assignment-1.0-SNAPSHOT.jar
+          target: /home/ubuntu/deploy
+          strip_components: 2
+
+      - name: Restart Spring Boot
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_FINGERPRINT }}
+          script: |
+            set -eu
+
+            APP=/home/ubuntu/deploy/assignment-1.0-SNAPSHOT.jar
+            CONFIG=/home/ubuntu/seoyeon.cho/src/main/resources/application.yml
+
+            test -f "$APP"
+            test -f "$CONFIG"
+
+            PID=$(pgrep -f '^java -jar .*assignment-1.0-SNAPSHOT.jar' || true)
+
+            if [ -n "$PID" ]; then
+              kill $PID
+              sleep 3
+            fi
+
+            nohup java -jar "$APP" \
+              --spring.config.additional-location="file:$CONFIG" \
+              > /home/ubuntu/deploy/app.log 2>&1 < /dev/null &
+
+            sleep 20
+            curl --fail http://localhost:8080/api/v1/posts

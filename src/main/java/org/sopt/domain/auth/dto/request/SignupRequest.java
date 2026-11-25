@@ -1,0 +1,6 @@
+package org.sopt.domain.auth.dto.request;
+
+public record SignupRequest(
+        String email,
+        String password
+) {}

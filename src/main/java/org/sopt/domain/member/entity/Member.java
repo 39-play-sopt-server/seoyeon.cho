@@ -25,6 +25,14 @@ public class Member extends BaseEntity {
         }
         this.name = name;
     }
+    public Member(String name, String email, String password) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("회원 이름은 비어 있을 수 없습니다.");
+        }
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
     public Member(String email, String password) {
         this.email = email;
         this.password = password;

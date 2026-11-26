@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,6 +35,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus()).body(new ApiResponse<>(false, errorCode.getMessage(), null));
+    }
+
+    // HTTP 상태 코드 지정 예외 처리
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(
+            ResponseStatusException e
+    ) {
+        return ResponseEntity
+                .status(e.getStatusCode())
+                .body(e.getReason());
     }
 
     // 공통핸들러 --> 예상하지 못한 서버 오류

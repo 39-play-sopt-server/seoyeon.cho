@@ -52,15 +52,21 @@ public class AuthService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
+        // 비밀번호 검증
         if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
+
+        // 탈퇴 회원 로그인 차단
+        if (member.isDeleted()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원입니다.");
         }
 
         String accessToken = jwtProvider.createAccessToken(member.getId());
         String refreshToken = jwtProvider.createRefreshToken(member.getId());
 
         Claims claims = jwtProvider.parseClaims(refreshToken);
-        String tokenHash = refreshTokenHasher.hash((refreshToken));
+        String tokenHash = refreshTokenHasher.hash(refreshToken);
 
         RefreshToken savedToken = new RefreshToken(member, tokenHash, claims.getExpiration().toInstant());
         refreshTokenRepository.save(savedToken);
@@ -80,7 +86,7 @@ public class AuthService {
         }
 
         // 토큰 해시 처리
-        String tokenHash = refreshTokenHasher.hash((refreshToken));
+        String tokenHash = refreshTokenHasher.hash(refreshToken);
 
         // DB의 RefreshToken 조회
         RefreshToken savedToken = refreshTokenRepository
@@ -90,6 +96,11 @@ public class AuthService {
         // DB 만료 시간 및 회원 id 확인
         if (savedToken.isExpired() || !savedToken.getMember().getId().equals(memberId)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "만료되었거나 유효하지 않은 Refresh Token입니다.");
+        }
+
+        // 탈퇴 회원의 토큰 재발급 차단
+        if (savedToken.getMember().isDeleted()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원입니다.");
         }
 
         // 기존 RefreshToken 삭제
@@ -113,5 +124,45 @@ public class AuthService {
 
         // 새로운 토큰 반환
         return new TokenPair(newAccessToken, newRefreshToken);
+    }
+
+
+    @Transactional
+    public void logout(Long memberId, String refreshToken) {
+
+        // RefreshToken 존재 여부 확인
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh Token이 존재하지 않습니다.");
+        }
+
+        // RefreshToken 검증 및 회원 ID 추출
+        Long refreshMemberId;
+
+        try {
+            refreshMemberId = jwtProvider.getRefreshTokenMemberId(refreshToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token입니다.");
+        }
+
+        // AccessToken의 회원 id와 비교
+        if (!memberId.equals(refreshMemberId)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰의 회원 정보가 일치하지 않습니다.");
+        }
+
+        // DB RefreshToken 조회
+        String tokenHash = refreshTokenHasher.hash(refreshToken);
+
+        RefreshToken savedToken = refreshTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 Refresh Token입니다."));
+
+        // 저장 RefreshToken 소유자 확인
+        if (!savedToken.getMember().getId().equals(memberId)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 소유자가 일치하지 않습니다.");
+        }
+
+
+        // RefreshToken 삭제
+        refreshTokenRepository.delete(savedToken);
     }
 }

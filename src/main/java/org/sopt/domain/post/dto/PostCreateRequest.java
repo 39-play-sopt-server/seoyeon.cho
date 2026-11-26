@@ -6,15 +6,13 @@ public class PostCreateRequest {
     private String title;
     private String content;
     private PostCategory category;
-    private Long memberId;
 
     public PostCreateRequest(){}
 
-    public PostCreateRequest(String title, String content, PostCategory category, Long memberId) {
+    public PostCreateRequest(String title, String content, PostCategory category) {
         this.title = title;
         this.content = content;
         this.category = category;
-        this.memberId = memberId;
     }
 
     public String getTitle() {
@@ -27,10 +25,6 @@ public class PostCreateRequest {
 
     public PostCategory getCategory() {
         return category;
-    }
-
-    public Long getMemberId() {
-        return memberId;
     }
 }
 

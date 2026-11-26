@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -88,5 +89,32 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new LoginResponse(tokens.accessToken()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            Authentication authentication,
+            @CookieValue(value = "refreshToken", required = false)
+            String refreshToken
+    ) {
+        // SecurityContext에서 인증된 회원 id 추출
+        Long memberId = (Long) authentication.getPrincipal();
+
+        // RefreshToken 무효화
+        authService.logout(memberId, refreshToken);
+
+        // RefreshToken 쿠키 삭제
+        ResponseCookie expiredCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/auth")
+                .maxAge(Duration.ZERO)  // 쿠키 유효기간 0 설정 --> 브라우저에 저장된 RefreshToken 즉시 제거 요청
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
+                .build();
     }
 }

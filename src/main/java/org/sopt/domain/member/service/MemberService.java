@@ -1,10 +1,10 @@
 package org.sopt.domain.member.service;
 
+import org.sopt.domain.auth.token.RefreshTokenRepository;
 import org.sopt.global.exception.BusinessException;
 import org.sopt.global.exception.ErrorCode;
 import org.sopt.domain.member.entity.Member;
 import org.sopt.domain.member.repository.MemberRepository;
-import org.sopt.domain.post.repository.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,29 +12,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final PostRepository postRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public MemberService(MemberRepository memberRepository, PostRepository postRepository) {
+    public MemberService(MemberRepository memberRepository, RefreshTokenRepository refreshTokenRepository) {
         this.memberRepository = memberRepository;
-        this.postRepository = postRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    // 회원 생성
-    public void createMember(String name) {
-        Member member = new Member(name);
-        memberRepository.save(member);
-    }
-
-    // 회원 삭제
+    // 회원 탈퇴 - Soft Delete
     @Transactional
-    public void deleteMember(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        boolean hasPosts = postRepository.existsByMember_Id(id);
+    public void withdraw(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        if (hasPosts) {
-            throw new BusinessException(ErrorCode.MEMBER_HAS_POSTS);
-        }
+        // 회원 탈퇴 상태 변경
+        member.withdraw();
 
-        memberRepository.delete(member);
+        // 회원의 모든 RefreshToken 삭제
+        refreshTokenRepository.deleteAllByMemberId(memberId);
+        refreshTokenRepository.flush();
     }
 }

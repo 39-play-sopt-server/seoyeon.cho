@@ -18,22 +18,15 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     protected Member() {}
-    public Member(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("회원 이름은 비어 있을 수 없습니다.");
-        }
-        this.name = name;
-    }
     public Member(String name, String email, String password) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("회원 이름은 비어 있을 수 없습니다.");
         }
         this.name = name;
-        this.email = email;
-        this.password = password;
-    }
-    public Member(String email, String password) {
         this.email = email;
         this.password = password;
     }
@@ -50,5 +43,16 @@ public class Member extends BaseEntity {
     }
     public String getPassword() {
         return password;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void withdraw() {
+        if (this.deleted) {
+            throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+        }
+        this.deleted = true;
     }
 }

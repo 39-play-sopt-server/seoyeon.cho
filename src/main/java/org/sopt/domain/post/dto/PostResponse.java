@@ -19,7 +19,7 @@ public class PostResponse {
         this.title = post.getTitle();
         this.content = post.getContent();
         this.category = post.getCategory();
-        this.writer = post.getMember().getName();
+        this.writer = post.getMember().isDeleted() ? "탈퇴한 사용자" : post.getMember().getName();
         this.viewCount = post.getViewCount();
         this.createdAt = post.getCreatedAt();
     }

@@ -27,4 +27,3 @@ public class PostCreateRequest {
         return category;
     }
 }
-

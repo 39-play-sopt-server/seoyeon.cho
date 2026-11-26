@@ -12,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class PostService {
@@ -30,7 +32,18 @@ public class PostService {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 탈퇴한 회원은 게시글 작성 불가
+        if (member.isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "탈퇴한 회원은 게시글을 작성할 수 없습니다."
+            );
+        }
+
         Post post = new Post(title, content, category, member);
         postRepository.save(post);
     }
@@ -49,15 +62,28 @@ public class PostService {
         return new PostResponse(post);
     }
 
+
     @Transactional
-    public void updatePost(long id, String title, String content) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    public void updatePost(long id, String title, String content, Long memberId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        validatePostOwner(post, memberId);
         post.updatePost(title, content);
     }
 
     @Transactional
-    public void deletePost(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    public void deletePost(Long id, Long memberId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        validatePostOwner(post, memberId);
         postRepository.delete(post);
+    }
+
+    private void validatePostOwner(Post post, Long memberId) {
+        if (memberId == null || !post.getMember().getId().equals(memberId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인이 작성한 게시글만 수정하거나 삭제할 수 있습니다.");
+        }
     }
 }

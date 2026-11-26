@@ -1,9 +1,10 @@
 package org.sopt.domain.member.controller;
 
-import org.sopt.global.dto.ApiResponse;
-import org.sopt.domain.member.dto.MemberCreateRequest;
+import java.time.Duration;
 import org.sopt.domain.member.service.MemberService;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -12,35 +13,41 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/members")
 public class MemberController {
     private final MemberService service;
+    private final boolean cookieSecure;
 
-    public MemberController(MemberService memberService) {
-        this.service = memberService;
+    public MemberController(
+            MemberService service,
+            @Value("${jwt.cookie-secure:true}")
+            boolean cookieSecure
+    ) {
+        this.service = service;
+        this.cookieSecure = cookieSecure;
     }
 
+    // 내 정보 조회
     @GetMapping("/me")
     public ResponseEntity<Long> me(@AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(memberId);
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createMember(
-            @RequestBody MemberCreateRequest request) {
+    // 회원 탈퇴 - Soft Delete
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw(@AuthenticationPrincipal Long memberId) {
+        // 회원 탈퇴 처리
+        service.withdraw(memberId);
 
-        service.createMember(
-                request.getName()
-        );
+        // RefreshToken 쿠키 삭제
+        ResponseCookie expiredCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/auth")
+                .maxAge(Duration.ZERO)
+                .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(true, "회원 생성 성공", null));
-    }
-
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<ApiResponse<Void>> deleteMember(
-            @PathVariable("memberId") Long memberId) {
-
-        service.deleteMember(memberId);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse<>(true, "회원 삭제 성공", null));
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
+                .build();
     }
 }
